@@ -3,13 +3,16 @@ import os
 import tempfile
 from datetime import date
 import threading
-import pythoncom
 import glob
 from PIL import Image
 import pandas as pd
 import time
 import zipfile
 import base64
+import sys
+if sys.platform.startswith("win"):
+    import pythoncom
+
 
 from DRA_Distance_to_Boundary_v17 import process_coords, CreatingWordFile, TEMPLATE_DOCX_PATH
 import DRA_Distance_to_Boundary_v17
@@ -72,14 +75,18 @@ for key in ["output_csv_path", "word_files", "map_files", "processed", "df"]:
 
 # -------------------- HELPER FUNCTION --------------------
 def create_word_file_thread(output_csv, template_path, output_dir, progress_placeholder):
-    pythoncom.CoInitialize()
     try:
+        if sys.platform.startswith("win"):
+            import pythoncom
+            pythoncom.CoInitialize()
         CreatingWordFile(output_csv, template_path, output_dir)
         progress_placeholder.success("✅ Word file generation complete!")
     except Exception as e:
         progress_placeholder.error(f"Word creation failed: {e}")
     finally:
-        pythoncom.CoUninitialize()
+        if sys.platform.startswith("win"):
+            pythoncom.CoUninitialize()
+
 
 # -------------------- MAIN PROCESS --------------------
 if run_button:
@@ -338,3 +345,4 @@ if os.path.exists(logo_path_top):
         """,
         unsafe_allow_html=True
     )
+
